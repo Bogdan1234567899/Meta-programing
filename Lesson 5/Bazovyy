@@ -1,0 +1,137 @@
+using System;
+using System.Collections.Generic;
+
+namespace CollectionsHomework
+{
+    public class Task1_ForEach
+    {
+        public static void Run()
+        {
+            Console.WriteLine("=== Завдання 1: БАЗОВЕ - foreach vs ручний while ===\n");
+
+            List<int> numbers = new List<int> { 10, 20, 30, 40, 50 };
+
+            Console.WriteLine("1. Ручний обхід через GetEnumerator/MoveNext/Current/Dispose:");
+            ManualIteration(numbers);
+
+            Console.WriteLine("\n2. Обхід через foreach:");
+            ForeachIteration(numbers);
+
+            Console.WriteLine("\n3. Спроба змінити список під час foreach:");
+            TryModifyDuringForeach(numbers);
+
+            Console.WriteLine("\n4. Безпечні варіанти обходу:");
+            SafeIterationWithSnapshot(numbers);
+            SafeIterationWithIndexLoop(numbers);
+
+            Console.WriteLine("\n=== Звіт ===");
+            Console.WriteLine("Рішення: Ручний обхід використовує протокол IEnumerator, foreach - синтаксичний цукор.");
+            Console.WriteLine("Інваріанти: IEnumerator стає недійсним при модифікації колекції.");
+            Console.WriteLine("Винятки: InvalidOperationException при модифікації під час foreach.");
+            Console.WriteLine("Безпечні підходи: ToArray() створює знімок, індексний for не використовує енумератор.");
+        }
+
+        // КОНТРАКТ IEnumerable<T> -> GetEnumerator() повертає IEnumerator<T>
+        // КОНТРАКТ IEnumerator<T>: MoveNext() bool, Current T, Dispose() void
+        static void ManualIteration(List<int> list)
+        {
+            IEnumerator<int> enumerator = list.GetEnumerator();
+            
+            try
+            {
+                while (enumerator.MoveNext())
+                {
+                    int current = enumerator.Current;
+                    Console.WriteLine("  Елемент: " + current);
+                }
+            }
+            finally
+            {
+                // КОНТРАКТ IDisposable: Dispose() звільняє ресурси
+                if (enumerator != null)
+                {
+                    enumerator.Dispose();
+                }
+            }
+        }
+
+        // foreach - компілятор генерує виклики GetEnumerator/MoveNext/Current/Dispose
+        static void ForeachIteration(List<int> list)
+        {
+            foreach (int number in list)
+            {
+                Console.WriteLine("  Елемент: " + number);
+            }
+        }
+
+        // List<T> відстежує версію - модифікація інвалідує енумератор
+        static void TryModifyDuringForeach(List<int> list)
+        {
+            try
+            {
+                foreach (int number in list)
+                {
+                    Console.WriteLine("  Обробка елемента: " + number);
+                    
+                    if (number == 20)
+                    {
+                        Console.WriteLine("  Спроба додати елемент 25...");
+                        list.Add(25);
+                    }
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("  *** ВИНЯТОК: " + ex.Message);
+                list.Remove(25);
+            }
+        }
+
+        // ToArray() створює копію - ітерація по копії не залежить від оригіналу
+        static void SafeIterationWithSnapshot(List<int> list)
+        {
+            Console.WriteLine("  4а. Безпечний обхід через знімок (ToArray):");
+            
+            int[] snapshot = list.ToArray();
+            
+            foreach (int number in snapshot)
+            {
+                Console.WriteLine("    Елемент: " + number);
+                
+                if (number == 30)
+                {
+                    Console.WriteLine("    Додаємо 35 до оригінального списку...");
+                    list.Add(35);
+                    Console.WriteLine("    Ітерація триває без винятків!");
+                }
+            }
+            
+            Console.WriteLine("    Оригінальний список тепер має " + list.Count + " елементів");
+            list.Remove(35);
+        }
+
+        // Індексний доступ не використовує IEnumerator - безпечний для модифікацій
+        static void SafeIterationWithIndexLoop(List<int> list)
+        {
+            Console.WriteLine("  4б. Безпечний обхід через індексний for:");
+            
+            int count = list.Count;
+            
+            for (int i = 0; i < count; i++)
+            {
+                int number = list[i];
+                Console.WriteLine("    Елемент [" + i + "]: " + number);
+                
+                if (number == 40)
+                {
+                    Console.WriteLine("    Додаємо 45 до списку...");
+                    list.Add(45);
+                    Console.WriteLine("    Цикл for продовжується без винятків!");
+                }
+            }
+            
+            Console.WriteLine("    Список тепер має " + list.Count + " елементів");
+            list.Remove(45);
+        }
+    }
+}
