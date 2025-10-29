@@ -16,11 +16,9 @@ namespace CollectionsHomework
             
             Task2_Book.Run();
             Console.WriteLine("\n\n");
-            Pause();
+            
 
             
-            Task3_BookComparers.Run();
-            Console.WriteLine("\n\n");
             
         }
 
