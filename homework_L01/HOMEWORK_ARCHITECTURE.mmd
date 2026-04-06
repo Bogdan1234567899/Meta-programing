@@ -1,0 +1,10 @@
+flowchart LR
+    CR[Main / Composition Root] --> PF[IPluginFactory]
+    PF --> IP[IPlugin]
+    IP --> HP[HelloPlugin]
+    IP --> TP[TimePlugin]
+    IP --> BP[ByePlugin]
+    IP --> DEC[PluginLoggerDecorator]
+    CR --> IEB[IEventBus]
+    IEB --> UI[UI Subscriber]
+    IEB --> TEL[Telemetry Subscriber]
